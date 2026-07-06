@@ -1,0 +1,21 @@
+name: Automated SWAPI Regression Tests
+on: [push]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install Newman CLI
+        run: npm install -g newman
+
+      - name: Run Postman Automation Suite
+        run: |
+          newman run "Star Wars API Data Testing.postman_collection.json" -e "SWAPI Error Mock.postman_environment.json"
