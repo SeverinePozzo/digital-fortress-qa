@@ -9,35 +9,699 @@
   },
   "item": [
     {
-      "name": "Get Luke Skywalker Profile",
-      "request": {
-        "method": "GET",
-        "header": []
-      },
-      "response": []
+      "name": "People endpoint",
+      "item": [
+        {
+          "name": "Retrieve People Directory",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "eval(pm.collectionVariables.get(\"utils\"));\r",
+                  "var jsonData = pm.response.json();\r",
+                  "\r",
+                  "// Universal Health Check (200 OK & Response Time)\r",
+                  "swapiUtils.assertResponseHealth(200);\r",
+                  "\r",
+                  "// Directory Specific Validations\r",
+                  "pm.test(\"Directory Validation - Payload contains pagination counters\", function () {\r",
+                  "    pm.expect(jsonData).to.have.property('count');\r",
+                  "    pm.expect(jsonData.count).to.be.a('number');\r",
+                  "    pm.expect(jsonData).to.have.property('results');\r",
+                  "    pm.expect(jsonData.results).to.be.an('array');\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/people/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "people",
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Retrieve Valid Profile 200 OK",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Pull the shared functions from the collection variable\r",
+                  "eval(pm.collectionVariables.get(\"utils\"));\r",
+                  "\r",
+                  "// Parse the response data\r",
+                  "var jsonData = pm.response.json();\r",
+                  "\r",
+                  "// Run the shared package tests \r",
+                  "swapiUtils.assertResponseHealth(200);\r",
+                  "swapiUtils.assertCommonPayloadTypes(jsonData);\r",
+                  "\r",
+                  "// Field assertion for this character\r",
+                  "pm.test(\"Field Assertion - Character is Luke Skywalker\", function () {\r",
+                  "    pm.expect(jsonData.name).to.equal(\"Luke Skywalker\");\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "https://swapi.py4e.com/api/people/1/",
+              "protocol": "https",
+              "host": [
+                "swapi",
+                "py4e",
+                "com"
+              ],
+              "path": [
+                "api",
+                "people",
+                "1",
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "People Paginated Deep Link Page 2",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "eval(pm.collectionVariables.get(\"utils\"));\r",
+                  "var jsonData = pm.response.json();\r",
+                  "\r",
+                  "swapiUtils.assertResponseHealth(200);\r",
+                  "\r",
+                  "pm.test(\"Pagination Validation - Next and Previous links are present\", function () {\r",
+                  "    pm.expect(jsonData.next).to.include(\"page=3\");\r",
+                  "    pm.expect(jsonData.previous).to.include(\"page=1\");\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/people/?page=2",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "people",
+                ""
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "2"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Invalid Pagination Boundary Check",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "eval(pm.collectionVariables.get(\"utils\"));\r",
+                  "var jsonData = pm.response.json();\r",
+                  "\r",
+                  "// The server reject this with a 404 client error tier\r",
+                  "swapiUtils.assertResponseHealth(404);\r",
+                  "\r",
+                  "pm.test(\"Boundary Assertion - Correct out-of-bounds error message\", function () {\r",
+                  "    pm.expect(jsonData.detail.toLowerCase()).to.include(\"not found\");\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "pm.variables.set(\"isNegativeTestCase\", true);"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/people/?page=99999",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "people",
+                ""
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "99999"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
     },
     {
-      "name": "Sad Path - Request Non-Existent Character",
-      "request": {
-        "method": "GET",
-        "header": [],
-        "url": {
-          "raw": "https://swapi.py4e.com/api/people/9999/",
-          "protocol": "https",
-          "host": [
-            "swapi",
-            "py4e",
-            "com"
+      "name": "Mock Contract Suite",
+      "item": [
+        {
+          "name": "Missing profile check 404",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Verify Status Code Layer for Deleted/Missing Data - must return a 404 Not Found\r",
+                  "pm.test(\"Status code is 404 Not Found for missing or deleted resource\", function () {\r",
+                  "    pm.response.to.have.status(404);\r",
+                  "});\r",
+                  "\r",
+                  "// Validate Error Structure\r",
+                  "pm.test(\"Server returns a valid JSON error message payload\", function () {\r",
+                  "    var jsonData = pm.response.json();\r",
+                  "    \r",
+                  "// SWAPI handles missing data by returning a 'detail' property\r",
+                  "    pm.expect(jsonData).to.have.property('detail');\r",
+                  "    pm.expect(jsonData.detail).to.be.a('string');\r",
+                  "    pm.expect(jsonData.detail.toLowerCase()).to.include(\"not found\");\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "pm.variables.set(\"isNegativeTestCase\", true);"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
           ],
-          "path": [
-            "api",
-            "people",
-            "9999",
-            ""
-          ]
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}api/people/9999/",
+              "host": [
+                "{{baseUrl}}api"
+              ],
+              "path": [
+                "people",
+                "9999",
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Resource wiping guard 405",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Assert that the server blocks the deletion with a 405 status code\r",
+                  "pm.test(\"Status code is 405 Method Not Allowed\", function () {\r",
+                  "    pm.response.to.have.status(405);\r",
+                  "});\r",
+                  "\r",
+                  "// Security Check: verify that the response payload confirms the refusal\r",
+                  "pm.test(\"Server response body explicitly identifies unauthorized method\", function () {\r",
+                  "    var jsonData = pm.response.json();\r",
+                  "    \r",
+                  "    // Framework returns a detail or error string \r",
+                  "    pm.expect(jsonData).to.have.property('detail');\r",
+                  "    pm.expect(jsonData.detail.toLowerCase()).to.include(\"not allowed\");\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "pm.variables.set(\"isNegativeTestCase\", true);"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}api/people/1/",
+              "host": [
+                "{{baseUrl}}api"
+              ],
+              "path": [
+                "people",
+                "1",
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Data Injection Guard",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "//Status Code Assertion: the server rejects the creation with a 405 Method Not Allowed or 403 Forbidden\r",
+                  "pm.test(\"TC-001: Server blocks unauthorized creation with 405 status code\", function () {\r",
+                  "    pm.response.to.have.status(405);\r",
+                  "});\r",
+                  "\r",
+                  "// Data & Error Contract Assertion\r",
+                  "// Ensure that the server returns a proper JSON error detailing that creation is prohibited\r",
+                  "pm.test(\"TC-002: Error payload explicitly states POST actions are disallowed\", function () {\r",
+                  "    var jsonData = pm.response.json();\r",
+                  "    \r",
+                  "    // Check that an error detail property exists\r",
+                  "    pm.expect(jsonData).to.have.property('detail');\r",
+                  "    \r",
+                  "    // Check that the text tells the developer why it failed\r",
+                  "    pm.expect(jsonData.detail.toLowerCase()).to.include(\"not allowed\");\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "pm.variables.set(\"isNegativeTestCase\", true);"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"name\": \"Ahsoka Tano\",\r\n    \"height\": \"170\",\r\n    \"mass\": \"61\",\r\n    \"hair_color\": \"none\",\r\n    \"skin_color\": \"orange\",\r\n    \"eye_color\": \"blue\",\r\n    \"birth_year\": \"36BBY\",\r\n    \"gender\": \"female\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}api/people/",
+              "host": [
+                "{{baseUrl}}api"
+              ],
+              "path": [
+                "people",
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Secure Resource Access Block 401 Unauthorized",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Pull the shared functions from your collection variable\r",
+                  "eval(pm.collectionVariables.get(\"utils\"));\r",
+                  "var jsonData = pm.response.json();\r",
+                  "\r",
+                  "// Global health\r",
+                  "swapiUtils.assertResponseHealth(200);\r",
+                  "\r",
+                  "// Unique Security Check \r",
+                  "pm.test(\"Security Audit - Payload body does not expose secret token metadata\", function () {\r",
+                  "    pm.expect(jsonData).to.not.have.property('token');\r",
+                  "    pm.expect(jsonData).to.not.have.property('authorization');\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{dummyToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/people/1/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "people",
+                "1",
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Client Format Malformation Check 400 Bad Request",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "eval(pm.collectionVariables.get(\"utils\"));\r",
+                  "var jsonData = pm.response.json();\r",
+                  "\r",
+                  "// Call the global health helper\r",
+                  "swapiUtils.assertResponseHealth(404);\r",
+                  "\r",
+                  "// Unique Interface Assertion \r",
+                  "pm.test(\"Format Guardrail - Server handles malformed query types with a standard error object\", function () {\r",
+                  "    pm.expect(jsonData).to.have.property('detail');\r",
+                  "    pm.expect(jsonData.detail.toLowerCase()).to.include(\"not found\");\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "pm.variables.set(\"isNegativeTestCase\", true);"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}api/people/1?format=invalid_format_type/",
+              "host": [
+                "{{baseUrl}}api"
+              ],
+              "path": [
+                "people",
+                "1"
+              ],
+              "query": [
+                {
+                  "key": "format",
+                  "value": "invalid_format_type/"
+                }
+              ]
+            }
+          },
+          "response": []
         }
-      },
-      "response": []
+      ]
+    },
+    {
+      "name": "2. Planets Endpoint",
+      "item": [
+        {
+          "name": "Retrieve Planets Directory",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();\r",
+                  "\r",
+                  "pm.test(\"Status code is 200 OK\", function () {\r",
+                  "    pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Schema Verification - Results array is present\", function () {\r",
+                  "    pm.expect(jsonData.results).to.be.an('array');\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/planets/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "planets",
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Retrieve Specific Planet Profile",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();\r",
+                  "\r",
+                  "pm.test(\"Status code is 200 OK\", function () {\r",
+                  "    pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Data Validation - Climate evaluates to a valid text description\", function () {\r",
+                  "    pm.expect(jsonData.climate).to.be.a('string');\r",
+                  "    pm.expect(jsonData.climate).to.not.be.empty;\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/planets/1/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "planets",
+                "1",
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Query Search Parameter Filter",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();\r",
+                  "\r",
+                  "pm.test(\"Search Filter - Correctly returns target planet object in match array\", function () {\r",
+                  "    pm.expect(jsonData.results[0].name.toLowerCase()).to.equal(\"tatooine\");\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/planets/?search=tatooine",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "planets",
+                ""
+              ],
+              "query": [
+                {
+                  "key": "search",
+                  "value": "tatooine"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Non-Existent Planet ID Resource Boundary Check",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();\r",
+                  "\r",
+                  "pm.test(\"Status code is 404 Not Found\", function () {\r",
+                  "    pm.response.to.have.status(404);\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/planets/9999/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "planets",
+                "9999",
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Deep Schema Validation for Nested Collections",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();\r",
+                  "\r",
+                  "pm.test(\"Schema Verification - Relational asset collections are arrays\", function () {\r",
+                  "    pm.expect(jsonData.residents).to.be.an('array');\r",
+                  "    pm.expect(jsonData.films).to.be.an('array');\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/planets/2/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "planets",
+                "2",
+                ""
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
     }
   ],
   "event": [
@@ -62,6 +726,16 @@
           ""
         ]
       }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": ""
+    },
+    {
+      "key": "utils",
+      "value": "this.swapiUtils = {\n    assertResponseHealth: function(statusCode) {\n        pm.test(`Status code is explicitly ${statusCode}`, function () {\n            pm.response.to.have.status(statusCode);\n        });\n        pm.test(\"Response time is within acceptable QA thresholds (<700ms)\", function () {\n            pm.expect(pm.response.responseTime).to.be.below(700);\n        });\n    },\n    assertCommonPayloadTypes: function(data) {\n        if (data.name) {\n            pm.test(\"Data Validation - 'name' property is a valid string\", function () {\n                pm.expect(data.name).to.be.a('string');\n            });\n        }\n        if (data.films) {\n            pm.test(\"Data Validation - 'films' property is a structured array\", function () {\n                pm.expect(data.films).to.be.an('array');\n            });\n        }\n    }\n};"
     }
   ]
 }

@@ -1,0 +1,407 @@
+{
+  "info": {
+    "_postman_id": "421e6ed5-34d0-48c3-8906-a8c5d9595ebf",
+    "name": "Star Wars API Data Testing",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "55377696",
+    "_collection_link": "https://go.postman.co/collection/55377696-421e6ed5-34d0-48c3-8906-a8c5d9595ebf?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "Pilot Verification Flight Log Workflow",
+      "item": [
+        {
+          "name": "Fetch the Character & Isolate the Starship",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Character found successfully\", function () {\r",
+                  "    pm.response.to.have.status(200);\r",
+                  "    const jsonData = pm.response.json();\r",
+                  "    \r",
+                  "    // Assert structural integrity of the search array\r",
+                  "    pm.expect(jsonData.results).to.be.an('array').that.is.not.empty;\r",
+                  "    const character = jsonData.results[0];\r",
+                  "    pm.expect(character.name).to.equal(\"Luke Skywalker\");\r",
+                  "\r",
+                  "    // Extract relational hypermedia links\r",
+                  "    const firstStarshipUrl = character.starships[0]; // e.g., X-wing URL\r",
+                  "    const homeworldUrl = character.homeworld;\r",
+                  "\r",
+                  "    pm.expect(firstStarshipUrl).to.exist.and.be.a('string');\r",
+                  "    pm.expect(homeworldUrl).to.exist.and.be.a('string');\r",
+                  "\r",
+                  "    // Save as collection variables \r",
+                  "    pm.collectionVariables.set(\"nextStarshipUrl\", firstStarshipUrl);\r",
+                  "    pm.collectionVariables.set(\"homeworldUrl\", homeworldUrl);\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}api/people/?search=Luke Skywalker",
+              "host": [
+                "{{baseUrl}}api"
+              ],
+              "path": [
+                "people",
+                ""
+              ],
+              "query": [
+                {
+                  "key": "search",
+                  "value": "Luke Skywalker"
+                }
+              ]
+            },
+            "description": "StartFragmentVerify the profile and dynamically capture their first available starship and their homeworld."
+          },
+          "response": []
+        },
+        {
+          "name": "Query the Extracted Ship",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Validate pilot's starship specifications\", function () {\r",
+                  "    pm.response.to.have.status(200);\r",
+                  "    const shipData = pm.response.json();\r",
+                  "\r",
+                  "    // Verify a valid vehicle sheet was pulled\r",
+                  "    pm.expect(shipData).to.have.property('name');\r",
+                  "    pm.expect(shipData).to.have.property('hyperdrive_rating');\r",
+                  "    \r",
+                  "    // Log specification directly into Postman Console\r",
+                  "    console.log(`Validating Ship: ${shipData.name} | Hyperdrive Class: ${shipData.hyperdrive_rating}`);\r",
+                  "\r",
+                  "    // Ensure it isn't an invalid/null hyperdrive asset\r",
+                  "    pm.expect(shipData.hyperdrive_rating).to.not.equal(\"unknown\");\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{nextStarshipUrl}}",
+              "host": [
+                "{{nextStarshipUrl}}"
+              ]
+            },
+            "description": "StartFragment Extract ship specifications dynamically based on what was passed from Step 1."
+          },
+          "response": []
+        },
+        {
+          "name": "Verify the Target Homeworld Environment",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Verify destination planet status\", function () {\r",
+                  "    pm.response.to.have.status(200);\r",
+                  "    const planetData = pm.response.json();\r",
+                  "\r",
+                  "    // Structural and data type checks on the final node\r",
+                  "    pm.expect(planetData.name).to.be.a('string').and.not.empty;\r",
+                  "    pm.expect(planetData.climate).to.be.a('string');\r",
+                  "    \r",
+                  "    // Tear down collection variables to keep the environment clean post-run\r",
+                  "    pm.collectionVariables.unset(\"nextStarshipUrl\");\r",
+                  "    pm.collectionVariables.unset(\"homeworldUrl\");\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{homeworldUrl}}",
+              "host": [
+                "{{homeworldUrl}}"
+              ]
+            },
+            "description": "Verify that the initial destination fetched in Step 1 resolves to a valid, intact location profile."
+          },
+          "response": []
+        }
+      ],
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {},
+            "exec": [
+              ""
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {},
+            "exec": [
+              "// Validate that the response code is within the successful 2xx range\r",
+              "pm.test(\"Status code is 2xx Success\", function () {\r",
+              "    pm.expect(pm.response.code).to.be.oneOf([200, 201, 202, 204]);\r",
+              "});\r",
+              "\r",
+              "// Exact status code mapping based on HTTP Method\r",
+              "const currentMethod = pm.request.method;\r",
+              "\r",
+              "if (currentMethod === \"POST\") {\r",
+              "    pm.test(\"POST Request: Status code is 201 Created or 200 OK\", function () {\r",
+              "        pm.expect(pm.response.code).to.be.oneOf([200, 201]);\r",
+              "    });\r",
+              "} else if (currentMethod === \"DELETE\") {\r",
+              "    pm.test(\"DELETE Request: Status code is 200 OK or 204 No Content\", function () {\r",
+              "        pm.expect(pm.response.code).to.be.oneOf([200, 204]);\r",
+              "    });\r",
+              "}\r",
+              "\r",
+              "// Performance Check\r",
+              "pm.test(\"Response time is under 800ms\", function () {\r",
+              "    pm.expect(pm.response.responseTime).to.be.below(800);\r",
+              "});\r",
+              "\r",
+              "// Security Check: Assert that the response explicitly protects or defines headers\r",
+              "pm.test(\"Security: Content-Type header is present\", function () {\r",
+              "    pm.response.to.have.header(\"Content-Type\");\r",
+              "});\r",
+              "// Only run success checks if we aren't deliberately testing an error path\r",
+              "if (!pm.variables.get(\"isNegativeTestCase\")) {\r",
+              "    pm.test(\"Status code is 2xx Success\", function () {\r",
+              "        pm.expect(pm.response.code).to.be.oneOf([200, 201, 202, 204]);\r",
+              "    });\r",
+              "}"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Mock HTTP Status Code Verification",
+      "item": [
+        {
+          "name": "404 Validate Resource Missing Boundary",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "// Disable 2xx success collection tests\r",
+                  "pm.variables.set(\"isNegativeTestCase\", true);"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Assert precise HTTP status boundary\r",
+                  "pm.test(\"Status code is exactly 404 Not Found\", function () {\r",
+                  "    pm.response.to.have.status(404);\r",
+                  "});\r",
+                  "\r",
+                  "// Assert payload format integrity\r",
+                  "pm.test(\"Payload contains valid error string keys\", function () {\r",
+                  "    const jsonData = pm.response.json();\r",
+                  "\r",
+                  "    pm.expect(jsonData).to.have.property('detail');\r",
+                  "    pm.expect(jsonData.detail).to.be.a('string').and.equal(\"Not found\");\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{mock_base_url}}/api/people/999/",
+              "host": [
+                "{{mock_base_url}}"
+              ],
+              "path": [
+                "api",
+                "people",
+                "999",
+                ""
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "404 Validate Resource Missing Boundary",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{mock_base_url}}/api/people/999/",
+                  "host": [
+                    "{{mock_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "people",
+                    "999",
+                    ""
+                  ]
+                }
+              },
+              "status": "Not Found",
+              "code": 404,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json",
+                  "description": "",
+                  "type": "text"
+                }
+              ],
+              "cookie": [
+                {
+                  "expires": "Invalid Date",
+                  "domain": "",
+                  "path": ""
+                }
+              ],
+              "body": "{\n    \"detail\": \"Not found\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "409 Validate Data Conflict Boundary",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Assert precise HTTP status boundary\r",
+                  "pm.test(\"Status code is exactly 409 Conflict\", function () {\r",
+                  "    pm.response.to.have.status(409);\r",
+                  "});\r",
+                  "\r",
+                  "// Assert business logic exception text\r",
+                  "pm.test(\"Payload details the exact resource conflict trace\", function () {\r",
+                  "    const jsonData = pm.response.json();\r",
+                  "\r",
+                  "    pm.expect(jsonData.error).to.equal(\"Conflict\");\r",
+                  "    pm.expect(jsonData.message).to.include(\"already assigned\");\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{mock_base_url}}/api/starships/",
+              "host": [
+                "{{mock_base_url}}"
+              ],
+              "path": [
+                "api",
+                "starships",
+                ""
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "409 Validate Data Conflict Boundary",
+              "originalRequest": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{mock_base_url}} /api/starships/",
+                  "host": [
+                    "{{mock_base_url}} "
+                  ],
+                  "path": [
+                    "api",
+                    "starships",
+                    ""
+                  ]
+                }
+              },
+              "status": "Conflict",
+              "code": 409,
+              "_postman_previewlanguage": "",
+              "header": [],
+              "cookie": [
+                {
+                  "expires": "Invalid Date",
+                  "domain": "",
+                  "path": ""
+                }
+              ],
+              "body": "{\r\n    \"error\": \"Conflict\",\r\n    \"message\": \"A starship with registration serial 'X-WING-99' is already assigned to Pilot Luke Skywalker.\"\r\n}"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    }
+  ]
+}
