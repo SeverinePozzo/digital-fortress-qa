@@ -5,21 +5,45 @@ This testing suite provides automated quality assurance and contract validation 
 
 The objective of this suite is to mitigate data corruption and ensure system resilience by validating live server responses against strict functional specifications.
 
+Star Wars API Data Validation.postman_collection.json: Boundary validation, query parameter behavior, and structural smoke tests.
+
+SWAPI Error Mock.postman_environment.json: Environment configuration mapping server variables, base URLs, and custom error injection simulation states.
+
 ## Automated Test Architecture
 
-### Happy Path Assertions (Data Integrity)
-Validates that production endpoints return correctly structured entities, valid HTTP headers, and strict data-type compliance:
-* **Network Integrity:** Asserts `200 OK` status responses and enforces performance thresholds (latency < 800ms).
-* **Schema Validation:** Verifies text payloads load natively as strings and structural arrays (e.g., historical timelines, related records) preserve data mapping.
-* **Property Matching:** Executes deep assertion checks to confirm that live strings align exactly with historical baseline values.
+### Data Integrity & Validation Suite
+**Schema enforcement**: validates status 200 OK responses along with exact data type assertions (e.g., validating strings, arrays, integers, and ISO timestamps) across endpoints like /people/ and /planets/.
+* **Deep schema and hierarchy checks**: ensures robust validation of nested objects and strict format compliance.
+* **Query param parsing**: tests standard behavior against valid, invalid, and empty search conditions.
 
 ### Sad Path Traps (Boundary Validation)
 Guarantees the backend handles anomalies gracefully without passing silent failures downstream into client applications:
 * **Resource Absence:** Targets non-existent resource records (`/people/9999/`) to verify the server correctly issues a `404 Not Found` response code.
 * **Error Readability:** Validates that error payloads return a structured JSON object featuring a human-readable `detail` key, preventing unhandled system crashes.
+  
+### Complex Workflow & Matching Algorithms
+**Pilot Verification Flight Log Workflow**: a multi-step dynamic integration test simulating real-world workflows
+* Extracts a starship or vehicle from a character payload.
+* Dynamically isolates the character URL as a designated pilot.
+* Runs a matching logic sequence to verify that the specified vehicle payload explicitly references the exact pilot in its logs, ensuring relational data consistency across asynchronous nodes.
 
-## How To Run locally
-1. Clone this repository to your local system.
-2. Open **Postman Desktop**.
-3. Import the `Star Wars API Data Validation.postman_collection.json` file.
-4. Execute the collection via the **Postman Collection Runner** to view real-time validation results.# digital-fortress-qa
+### Fault Tolerance & Negative Testing (HTTP Status Codes)
+Using custom configured mock environments to bypass static data restrictions, this suite tests the system's resilience by forcing and validating unexpected error conditions:
+
+* 404 Not Found: Verifies contract structure when referencing non-existent resources.
+* 409 Conflict: Validates data injection safety boundaries and resource overlap prevention.
+* Secure Resources: Tests authentication gates and payload protections.
+
+### Execution & Setup Instructions
+* Prerequisites
+Postman Desktop Agent or Newman CLI (for CI/CD execution).
+
+* Local Run Configuration
+
+* Clone this repository locally.
+
+* Import the desired collections and the SWAPI Error Mock environment into your Postman client workspace.
+
+* Select the SWAPI Error Mock environment from your environment dropdown.
+
+* Important Security Checklist: Ensure all highly sensitive operational credentials, local auth headers, or specific instance tokens are placed strictly in the Current Value column of your environment profile before starting execution to keep them locally isolated.
