@@ -47,3 +47,36 @@ Postman Desktop Agent or Newman CLI (for CI/CD execution).
 * Select the SWAPI Error Mock environment from your environment dropdown.
 
 * Important Security Checklist: Ensure all highly sensitive operational credentials, local auth headers, or specific instance tokens are placed strictly in the Current Value column of your environment profile before starting execution to keep them locally isolated.
+
+# Sector 2: Data Quality and Database Integrity Validation (SQL)
+
+## Objective
+This repository showcases assertions built to audit data pipelines for anomalies, tracking ingestion loops, constraint violations and degradation.
+
+### Core Assertions
+
+#### 1. Windowing Partition Check (Deduplication)
+Isolates row duplicates:
+```sql
+WITH ranked_users AS (
+    SELECT 
+        user_id,
+        email,
+        created_at,
+        ROW_NUMBER() OVER(PARTITION BY user_id, email ORDER BY created_at) as row_num
+    FROM raw_users
+)
+SELECT user_id, email, created_at 
+FROM ranked_users 
+WHERE row_num > 1;
+```
+
+#### 2. Cross-Table Integrity Audit (Orphan Records)
+Identifies downstream leaks where transaction entries decouple from master user catalogs:
+
+```sql
+SELECT o.order_id, o.user_id, o.order_amount
+FROM raw_orders o
+LEFT JOIN raw_users u ON o.user_id = u.user_id
+WHERE u.user_id IS NULL;
+```
