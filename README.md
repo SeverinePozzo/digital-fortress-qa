@@ -99,7 +99,7 @@ print("=== STARTING DATA INTEGRITY SCAN ===")
 for user in registered_users:
     # Validation
     if user in seen_users:
-        print(f"❌ DATA VALIDATION ERROR: SYSTEM DETECTED DUPLICATE ENTRY FOR: '{user}'")
+        print("ERROR [DataQuality]: System detected duplicate entry for user: '" + user + "'")
     else:
         seen_users.append(user)
 
@@ -128,11 +128,11 @@ print("=== STARTING SCREAMING FROG AUTOMATED QA GATE ===")
 for page in screaming_frog_data:
     # Rule 1: Catch Response Code Regressions
     if page["status"] == 404:
-        print(f"❌ CRITICAL SEV-1: Broken URL detected -> {page['url']} (404 Error)")
+        print("CRITICAL [SEO-Audit]: Broken URL detected (404 Error) -> " + current_url)
         
     # Rule 2: Catch Optimization Gaps
     if page["title"] == "":
-        print(f"⚠️ WARNING SEV-2: Missing Metadata -> {page['url']} (Empty Title Tag)")
+        print("WARNING [SEO-Audit]: Missing metadata (Empty Title Tag) -> " + current_url)
 
 print("=== AUTOMATED AUDIT COMPLETE ===")
 ```
