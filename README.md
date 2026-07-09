@@ -80,3 +80,59 @@ FROM raw_orders o
 LEFT JOIN raw_users u ON o.user_id = u.user_id
 WHERE u.user_id IS NULL;
 ```
+
+# Sector 3: Core QA Automation Foundations (Python)
+
+## Objective
+This repository documents my foundational automation knowledge. This script demonstrates algorithmic bug detection; evaluation of data sets for duplication anomalies using Python.
+
+### Automated Duplicate Scanning
+This baseline script tracks historical records using a storage array and raises a data validation error the exact moment an anomaly triggers.
+
+```python
+# Input tracking array
+registered_users = ["alex", "blake", "clara", "blake", "dan"]
+seen_users = []
+
+print("=== STARTING DATA INTEGRITY SCAN ===")
+
+for user in registered_users:
+    # Validation
+    if user in seen_users:
+        print(f"❌ DATA VALIDATION ERROR: SYSTEM DETECTED DUPLICATE ENTRY FOR: '{user}'")
+    else:
+        seen_users.append(user)
+
+print("=== SCAN COMPLETE ===")
+```
+
+# Sector 4: Technical SEO & Web Performance Automation (Screaming Frog)
+
+## Objective
+This repository showcases automated data sanitation applied to marketing and web performance metrics. It utilizes a low-level Python script to automatically parse bulk website crawl data exported from **Screaming Frog SEO Spider**.
+
+### Automated Crawl Script
+When dealing with bulk site migrations or staging environment audits, manually checking sheets for broken URLs is inefficient. This script scans the crawler's data rows to instantly isolate indexing roadblocks.
+
+```python
+# Simulated row data exported directly from a Screaming Frog internal crawl report
+screaming_frog_data = [
+    {"url": "[https://mysite.com/](https://mysite.com/)", "status": 200, "title": "Home - Welcome"},
+    {"url": "[https://mysite.com/about](https://mysite.com/about)", "status": 200, "title": ""},               # Missing Title
+    {"url": "[https://mysite.com/services](https://mysite.com/services)", "status": 404, "title": "Not Found"},    # Broken 404 Link
+    {"url": "[https://mysite.com/contact](https://mysite.com/contact)", "status": 200, "title": "Contact Us"}
+]
+
+print("=== STARTING SCREAMING FROG AUTOMATED QA GATE ===")
+
+for page in screaming_frog_data:
+    # Rule 1: Catch Response Code Regressions
+    if page["status"] == 404:
+        print(f"❌ CRITICAL SEV-1: Broken URL detected -> {page['url']} (404 Error)")
+        
+    # Rule 2: Catch Optimization Gaps
+    if page["title"] == "":
+        print(f"⚠️ WARNING SEV-2: Missing Metadata -> {page['url']} (Empty Title Tag)")
+
+print("=== AUTOMATED AUDIT COMPLETE ===")
+```
