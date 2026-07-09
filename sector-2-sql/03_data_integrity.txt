@@ -1,0 +1,10 @@
+-- Target: Find orders placed by non-existent users 
+SELECT 
+    o.order_id,
+    o.user_id AS order_user_id,
+    u.user_id AS master_user_id,
+    o.order_amount
+FROM raw_orders o
+LEFT JOIN raw_users u ON o.user_id = u.user_id
+WHERE u.user_id IS NULL;
+-- EXPECTED QA RESULT: Catches ORD-003 pointing to missing User 999

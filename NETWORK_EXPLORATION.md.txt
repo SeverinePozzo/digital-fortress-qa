@@ -1,0 +1,66 @@
+Project Overview
+This log documents real-world network layer and client-side telemetry audits on major streaming platforms (Dailymotion and YouTube). Using Charles Proxy, I intercepted HTTPS traffic to analyze how media players handle stable network baselines versus unexpected errors and simulated latency.
+
+📅 Test 1: Dailymotion Network Failure Analysis
+🧪 Objective
+Capture baseline media segment requests and document platform behavior during real-world stream interruptions.
+
+📊 Network Metrics & Capture
+Target Host: vod3.cf.dmcdn.net
+Media Protocol: HTTP Live Streaming (HLS)
+
+Normal Baseline
+Request Duration: 47s
+Size/Payload: standard .ts chunk
+Frontent UI behavior: smooth, zero lag
+
+Unexpected Drop
+Request Duration: N/A crashed
+Size/Payload: 0KB
+Frontent UI behavior: video froze; "Playback Error" UI triggered.
+Status: Failed
+Error: IO: Stream cancelled by CLIENT
+
+🧠 Engineering Takeaways
+Client-Side Self-Defense: the error log "Stream cancelled by CLIENT" proves that when Dailymotion's media server suddenly stopped transmitting mid-stream, the browser proactively cut the connection.
+
+Asynchronous Error Handling: instead of hanging or crashing the entire browser tab, the web app caught the network failure and decoupled it from the UI by rendering a user-facing error state.
+
+📅 Test 2: YouTube Adaptive Bitrate & Telemetry Audit
+🧪 Objective
+Stress-test YouTube’s DASH (Dynamic Adaptive Streaming over HTTP) protocol by injecting artificial bandwidth restrictions and monitoring native player telemetry.
+
+📊 Network Metrics & Capture
+Target Host: rr4---sn-aigl6nl7.googlevideo.com / rr3---sn-25glenlr.googlevideo.com
+
+Path Intercepted: /videoplayback
+
+Control Baseline
+Throttling: off
+Connection Speed: unrestricted
+Request Duration: 128ms
+Buffer: full
+Video Resolution: 1080p HD
+
+Stress Test
+Throttling: 432Kbps simulated 4G
+Connection Speed: 432 Kpbs
+Request Duration: 4.2s lagging
+Buffer: 0.00
+Video Resolution: 1080p HD locked
+
+📡 Telemetry Audit (Via "Stats for Nerds")
+Connection Speed Drop: Clamped at 432 Kbps (1080p streaming typically requires a minimum threshold of ~5,000 Kbps).
+
+Buffer Starvation: The Buffer Health metric hit absolute 0.00s, meaning the player completely ran out of cached video frames.
+
+🧠 Engineering Takeaways
+A direct pipeline exists between network latency and client UI health. The jump from a 128ms download duration to a 4.2s delay directly forced the client buffer to drop to zero.
+
+The video stayed locked at 1080p despite the network choke. This confirms that YouTube’s Adaptive Bitrate (ABR) algorithm chose to prioritize image quality over continuous playback during the initial stabilization window, resulting in a persistent frontend loading stall rather than an immediate resolution downshift.
+
+🏆 Core Technical Competencies Demonstrated
+HTTPS Traffic Decryption.
+Network Throttling 
+Network Simulation
+Full-Stack Performance Mapping

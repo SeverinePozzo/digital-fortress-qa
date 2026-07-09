@@ -1,0 +1,13 @@
+-- Target: Identify and count duplicate user ingestions
+WITH ranked_users AS (
+    SELECT 
+        user_id,
+        email,
+        created_at,
+        ROW_NUMBER() OVER(PARTITION BY user_id, email ORDER BY created_at) as row_num
+    FROM raw_users
+)
+SELECT user_id, email, created_at 
+FROM ranked_users 
+WHERE row_num > 1; 
+-- EXPECTED QA RESULT: Catches the duplicate row for user 102

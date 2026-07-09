@@ -1,0 +1,14 @@
+# Input tracking array
+registered_users = ["alex", "blake", "clara", "blake", "dan"]
+seen_users = []
+
+print("=== STARTING DATA INTEGRITY SCAN ===")
+
+for user in registered_users:
+    # Validation
+    if user in seen_users:
+        print("ERROR [DataQuality]: System detected duplicate entry for user: '" + user + "'")
+    else:
+        seen_users.append(user)
+
+print("=== SCAN COMPLETE ===")

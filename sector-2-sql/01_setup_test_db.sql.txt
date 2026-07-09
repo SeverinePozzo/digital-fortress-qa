@@ -1,0 +1,36 @@
+CREATE TABLE raw_users (
+    user_id INT,
+    email VARCHAR(255),
+    created_at TIMESTAMP
+);
+
+CREATE TABLE raw_orders (
+    order_id VARCHAR(50),
+    user_id INT,
+    order_amount DECIMAL(10,2),
+    order_date DATE
+);
+
+CREATE TABLE raw_payments (
+    payment_id INT,
+    order_id VARCHAR(50),
+    payment_status VARCHAR(50),
+    amount_paid DECIMAL(10,2)
+);
+
+-- Inject Mock Data 
+INSERT INTO raw_users VALUES 
+(101, 'alex@example.com', '2026-07-01 10:00:00'),
+(102, 'blake@example.com', '2026-07-02 11:15:00'),
+(102, 'blake@example.com', '2026-07-02 11:15:00'), -- BUG: Exact duplicate ingestion
+(103, NULL, '2026-07-03 09:30:00');               -- BUG: Missing critical business data (NULL Email)
+
+INSERT INTO raw_orders VALUES
+('ORD-001', 101, 150.00, '2026-07-01'),
+('ORD-002', 102, 75.50, '2026-07-02'),
+('ORD-003', 999, 220.00, '2026-07-03');            -- BUG: Orphaned record (User 999 doesn't exist)
+
+INSERT INTO raw_payments VALUES
+(1001, 'ORD-001', 'COMPLETED', 150.00),
+(1002, 'ORD-002', 'COMPLETED', 75.50),
+(1003, 'ORD-002', 'COMPLETED', 75.50);              -- BUG: Double payment processing for same Order
